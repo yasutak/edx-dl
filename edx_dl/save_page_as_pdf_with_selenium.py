@@ -3,17 +3,12 @@ import sys
 import os
 from typing import List
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 #from selenium.webdriver.support.ui import WebDriverWait
 import time
 import re
 import pickle
-from parsing import (
-    get_page_extractor
-)
 
-from utils import (
-    get_page_contents
-)
 
 #script_path = sys.path[0]
 #download_path = os.path.join(script_path, 'PAGES_AS_PDFS_DIR')
@@ -84,10 +79,24 @@ if __name__ == '__main__':
     re_sebsection_urls = re.compile(r"""['"](https://courses.edx.org/courses/.[^"]*)""")
     subsection_urls = re_sebsection_urls.findall(html_of_table_of_contents_page)
     #remove duplication in order
-    subsection_urls = list(dict.fromkeys(subsection_urls)) 
-    #TODO click icons with pyautogui image recogniton
+    print("subsection_urls", subsection_urls)
+    subsection_urls_with_no_duplucation = list(dict.fromkeys(subsection_urls)) [1::] #somehow the first element is weird duplicaiton
+    print("subsection_urls_with_no_duplucation", subsection_urls_with_no_duplucation)
 
+    for subsection_url in subsection_urls_with_no_duplucation:
+        driver.get(subsection_url)
+        index = 0
+        try:
+            while True:
+                driver.find_element_by_xpath(f'//*[@id="tab_{index}"]').click()
+                time.sleep(5)
+                driver.execute_script('window.print();')
+                index += 1
+        except NoSuchElementException:
+            print("next section")
+            pass
 
+    print("Done!!")
 
     '''
     urls = ['https://courses.edx.org/courses/course-v1:MITx+8.01.2x+3T2019a/courseware/week:week5/ls:ls_05_02/?activate_block_id=block-v1%3AMITx%2B8.01.2x%2B3T2019a%2Btype%40sequential%2Bblock%40ls%3Als_05_02',
